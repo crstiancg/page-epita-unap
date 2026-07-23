@@ -5,6 +5,7 @@
     "cloud": false,
     "skills": [
         "laravel-best-practices",
+        "passport-development",
         "pest-testing",
         "tailwindcss-development"
     ]
