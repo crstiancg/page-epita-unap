@@ -79,7 +79,33 @@ The Angular skeleton has no HTTP client or auth wiring yet (`app.config.ts` only
 
    Store `access_token` / `refresh_token` from the response (e.g. a signal-based `AuthService` backed by `localStorage` so the session survives reloads).
 
-4. **Attach the token** — a functional interceptor (`HttpInterceptorFn`) adding `Authorization: Bearer <access_token>` to requests going to `environment.apiUrl`.
+4. **Attach the token** — a functional interceptor (`HttpInterceptorFn`) adding `Authorization: Bearer <access_token>` to requests going to `environment.apiUrl`:
+
+   ```ts
+   // src/app/core/auth.interceptor.ts
+   import { HttpInterceptorFn } from '@angular/common/http';
+   import { inject } from '@angular/core';
+   import { environment } from '../../environments/environment';
+   import { AuthService } from './auth.service';
+
+   export const authInterceptor: HttpInterceptorFn = (req, next) => {
+     if (!req.url.startsWith(environment.apiUrl)) {
+       return next(req);
+     }
+
+     const token = inject(AuthService).accessToken();
+
+     if (!token) {
+       return next(req);
+     }
+
+     return next(req.clone({
+       setHeaders: { Authorization: `Bearer ${token}` },
+     }));
+   };
+   ```
+
+   Registered in `app.config.ts` as shown in step 2 (`provideHttpClient(withInterceptors([authInterceptor]))`). `AuthService.accessToken` is assumed to be a `signal<string | null>` synced with `localStorage`.
 
 5. **Hydrate roles/permissions after login** — `GET {apiUrl}/api/user` returns `{ user, roles, permissions }`; keep this in the same `AuthService` state and use it for route guards / conditional UI.
 
