@@ -45,5 +45,14 @@ class RolesAndPermissionsSeeder extends Seeder
         );
 
         $adminUser->assignRole($admin);
+
+        $testAdminUser = User::updateOrCreate(
+            ['email' => 'admin@example.com'],
+            ['name' => 'Administrador', 'password' => bcrypt('admin123')],
+        );
+
+        if (! $testAdminUser->hasRole($admin)) {
+            $testAdminUser->assignRole($admin);
+        }
     }
 }
